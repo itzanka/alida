@@ -1,0 +1,36 @@
+{
+    "url": "https://samehadaku.run/",
+    "search": {
+        "path": "?s={query}",
+        "separator": "+",
+        "list": "main#main.site-main.relat > article.animpost",
+        "title": "div.animposx > a > .data > .title > h2",
+        "link": " div.animposx > a"
+    },
+    "detail": {
+        "info": {
+            "title": "#infoarea > div > div.infoanime.widget_senction > div.infox > h1",
+            "synopsis": "#infoarea > div > div.infoanime.widget_senction > div.infox > div.desc > div",
+            "genre": "#infoarea > div > div.infoanime.widget_senction > div.infox > div.genre-info",
+            "detail": {
+                "list": "#infoarea > div > div.anim-senct > div.right-senc.widget_senction > div > div > div > span",
+                "name": "span > b",
+                "value": ""
+            }
+        },
+        "episode": {
+            "list": "div.lstepsiode.listeps > ul.scrolling > li",
+            "link": "div.epsleft > span > a",
+            "number": "div.epsright > span > a"
+        }
+    },
+    "downloadLinks": {
+        "list": ".download-eps#downloadb",
+        "fileType": "p > b",
+        "link": {
+            "list": "ul > li",
+            "quality": "strong",
+            "link": "span"
+        }
+    }
+}
