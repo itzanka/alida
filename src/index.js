@@ -7,10 +7,12 @@ const fs = require("fs");
 if (require.main === module) {
     start();
 } else {
+    let config = JSON.parse(fs.readFileSync("./config/samehadaku.json", "utf-8"))
     module.exports = {
         getDownloadLinks,
         getEpisode,
         search,
-        zippyshare
+        zippyshare,
+        config
     }
 }

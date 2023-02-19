@@ -1,18 +1,16 @@
-const { getDownloadLinks, getEpisode, search } = require("../lib/scrape.js");
-const zippyshare = require("../lib/zippyshare");
 const fs = require("fs");
-const { DownloaderHelper } = require("node-downloader-helper")
 const _async = require("async")
-const { Sema } = require("async-sema");
+const zippyshare = require("../lib/zippyshare");
 const { ProgressBar } = require("ascii-progress")
+const { DownloaderHelper } = require("node-downloader-helper")
+const { getDownloadLinks, getEpisode, search } = require("../lib/scrape.js");
+
 
 let configDir = __dirname + "/../config/samehadaku.json"
 let config = JSON.parse(fs.readFileSync(configDir, "utf-8"))
 
-const semaphore = new Sema(1);
 
 const start = async () => {
-
     let titles = await search((await Question({
         type: "input",
         name: "title",
@@ -48,28 +46,31 @@ const start = async () => {
         choices: Object.keys(downloadLinks).map((el) => el.split("_").join(" "))
     })
 
-    let {savePath} = await Question({
+    let { savePath } = await Question({
         type: "input",
         name: "savePath",
         message: "Dimana file akan disimpan?",
-        default: __dirname + "/download"
+        default: __dirname + "\\download"
     })
 
-    // check if exist if no create
     if (!fs.existsSync(savePath)) {
         fs.mkdirSync(savePath)
     }
 
     let zippyLinks = downloadLinks[selectedQnF.qQuality.split(" ").join("_")]
-    startDownload(zippyLinks, savePath)
+
+    _async.mapLimit(zippyLinks, 5, (el, cb) => {
+        startDownload(el, savePath).catch(e => {
+            console.log(e)
+        }).finally(cb())
+    })
 
 }
 
-let qualitySema = new Sema(10)
 
 async function getQualityInfo(episode) {
-
     let qualityInfo = {}
+
 
     for (const element in episode) {
         let result = await getDownloadLinks(episode[element].link, config)
@@ -95,15 +96,13 @@ async function getQualityInfo(episode) {
         });
     }
 
-    qualitySema.release()
     return qualityInfo
 
 }
 
-function startDownload(list, savePath) {
-    
-    _async.mapLimit(list, 5, async (el) => {
-        const bar = new ProgressBar({
+function startDownload(el, savePath) {
+    return new Promise(async (resolve, reject) => {
+        let bar = new ProgressBar({
             schema: ":title [:bar] :percent/:size :elapseds :speed",
             completed: "█",
             blank: " ",
@@ -112,20 +111,36 @@ function startDownload(list, savePath) {
         });
 
         try {
+
+            bar.tick(0, {
+                title: "Downloading episode " + el.title,
+                size: "0MB",
+                speed: "0Kbps"
+            })
+
             let { title, link } = await zippyshare(el.link)
+
+            if (!title || !link) {
+                bar.setSchema("File hilang di server untuk episode :title")
+                bar.completed = true
+                reject("File hilang di server untuk episode " + el.title);
+            }
+
+            title = title.length > 25 ? title.substring(0, 22) + "..." : title + " ".repeat(25 - title.length);
+
             let dl = new DownloaderHelper(link, savePath, {
                 fileName: title,
                 override: true
             })
 
-
-
             dl.on("end", () => {
                 bar.update(100)
+                resolve("File berhasil di download");
             })
 
-            dl.on("error", (err) => {
+            dl.on("error", (error) => {
                 bar.setSchema("ERROR :title")
+                reject("Ada masalah untuk episode " + el.title + " karena: " + error.message);
             })
 
             let lastProgress = 0
@@ -135,9 +150,9 @@ function startDownload(list, savePath) {
                 let speedinKB = (stats.speed / 1000).toFixed(2)
 
                 bar.tick(stats.progress - lastProgress, {
-                    title: title.length > 25 ? title.substring(0, 22) + "..." : title + " ".repeat(25 - title.length),
+                    title: title,
                     size: sizeinMB + "MB",
-                    speed: speedinKb + "Kbps"
+                    speed: speedinKB + "Kbps"
                 })
                 lastProgress = stats.progress;
             })
@@ -146,8 +161,10 @@ function startDownload(list, savePath) {
         } catch (error) {
             bar.setSchema("ERROR :title")
             bar.completed = true
+            reject("Ada masalah untuk episode " + el.title + " karena: " + error);
         }
     })
+
 }
 
 function Question(opts) {

@@ -66,7 +66,7 @@ const cheerio = require("cheerio")
         linkList.each((i, el) => {
             let links = {}
 
-            let Quality = $(el).find(config.downloadLinks.link.quality).text()
+            let Quality = $(el).find(config.downloadLinks.link.quality).text().split(" ").join("_")
             let link = $(el).find(config.downloadLinks.link.link)
 
             // check if quality == MP4HD or FULLHD
