@@ -1,7 +1,7 @@
 {
   "name": "alida",
-  "version": "1.0.0",
-  "description": "All in one anime downloader",
+  "version": "2.0.0",
+  "description": "Yet another anime downloader for indonesian subbed anime",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,8 @@
   },
   "keywords": [
     "anime-downloader",
-    "anime"
+    "anime",
+    "anime-sub-indo"
   ],
   "author": "itzanka",
   "license": "MIT",
@@ -23,11 +24,7 @@
   },
   "homepage": "https://github.com/itzanka/alida#readme",
   "dependencies": {
-    "ascii-progress": "^2.0.0",
-    "async": "^3.2.4",
-    "async-sema": "^3.1.1",
     "cheerio": "1.0.0-rc.12",
-    "inquirer": "^9.1.4",
-    "node-downloader-helper": "^2.1.6"
+    "jest": "^29.4.3"
   }
 }
